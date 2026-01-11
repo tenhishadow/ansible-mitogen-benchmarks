@@ -1,0 +1,11 @@
+[project]
+name = "benchmark"
+version = "0.0.0"
+dependencies = [
+    "ansible-core",
+    "ansible-lint",
+    "mitogen"
+]
+
+[tool.uv]
+package = false

@@ -1,0 +1,28 @@
+- name: Mitogen benchmark
+  hosts: 127.0.0.1
+  gather_facts: false
+  become: true
+
+  tasks:
+    - name: Cheap module call
+      ping:
+
+    - name: Create many small files
+      copy:
+        dest: "/tmp/mitogen_bench_{{ item }}"
+        content: "hello {{ item }}\n"
+        mode: "0644"
+      loop: "{{ range(0, 200) | list }}"
+
+    - name: Touch config-like edits
+      lineinfile:
+        path: "/tmp/mitogen_bench_config"
+        line: "k{{ item }}=v{{ item }}"
+        create: true
+      loop: "{{ range(0, 200) | list }}"
+
+    - name: Cleanup
+      file:
+        path: "/tmp/mitogen_bench_{{ item }}"
+        state: absent
+      loop: "{{ range(0, 200) | list }}"

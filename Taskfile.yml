@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: "3"
+
+vars:
+  RUN_PLAYBOOK: "uv run ansible-playbook"
+  # RUN_PLAYBOOK: "ANSIBLE_STRATEGY=serverscom.mitogen.mitogen_linear uv run ansible-playbook"
+
+tasks:
+  os-deps:
+    status:
+      - sh -c 'type -P hyperfine'
+    cmd: >-
+      yay -Sy --noconfirm uv hyperfine
+  # python related
+  deps:
+    sources:
+      - pyproject.toml
+      - uv.lock
+    generates:
+      - .venv/pyvenv.cfg
+    cmds:
+      - uv sync --frozen --quiet
+    silent: true
+  upgrade:
+    cmds:
+      - uv sync --upgrade
+  galaxy-deps:
+    deps: [deps]
+    cmds:
+      - "uv run ansible-galaxy install -r requirements.yml"
+  bench:
+    deps: [galaxy-deps]
+    cmd: >-
+      hyperfine --warmup 1 -r 5
+      '{{.RUN_PLAYBOOK}} playbooks/{{.TASK}}.yml'
+      'ANSIBLE_STRATEGY=serverscom.mitogen.mitogen_linear {{.RUN_PLAYBOOK}} playbooks/{{.TASK}}.yml'
+  mitogen-only:
+    deps: [galaxy-deps]
+    cmd: 'ANSIBLE_STRATEGY=serverscom.mitogen.mitogen_linear {{.RUN_PLAYBOOK}} playbooks/bench.yml'
