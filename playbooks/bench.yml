@@ -2,26 +2,53 @@
   hosts:        benchmark_targets
   gather_facts: false
   become:       true
+  vars:
+    __loop_params: "{{ range(0, 2000) | list }}"
   tasks:
     - name: Cheap module call
       ansible.builtin.ping:
 
+    - name: Create temporary test directory
+      ansible.builtin.tempfile:
+        state:  directory
+        prefix: mitogen_test_
+      register: mitogen_test_directory
+
+    - name: Show temp directory location
+      ansible.builtin.debug:
+        var: mitogen_test_directory.path
+
     - name: Create many small files
       ansible.builtin.copy:
-        dest:    "/tmp/mitogen_bench_{{ item }}"
-        content: "hello {{ item }}\n"
-        mode:    "0644"
-      loop: "{{ range(0, 200) | list }}"
+        dest:    "{{ mitogen_test_directory.path }}/mitogen_bench_{{ item }}"
+        content: "hello {{ item }}"
+        mode:    "u=r,g=,o="
+      loop: "{{ __loop_params }}"
+      loop_control:
+        label: "Creating {{ mitogen_test_directory.path }}/{{ item }}"
 
     - name: Touch config like edits
       ansible.builtin.lineinfile:
-        path:   "/tmp/mitogen_bench_config"
+        path:   "{{ mitogen_test_directory.path }}/mitogen_bench_config"
         line:   "k{{ item }}=v{{ item }}"
         create: true
-      loop: "{{ range(0, 200) | list }}"
+        mode:    "u=r,g=,o="
+      loop: "{{ __loop_params }}"
+      loop_control:
+        label: "Insering k{{ item }}=v{{ item }} into {{ mitogen_test_directory.path }}/mitogen_bench_config"
 
-    - name: Cleanup
+    - name: Cleanup file by file | long way
       ansible.builtin.file:
-        path:  "/tmp/mitogen_bench_{{ item }}"
+        path:  "{{ mitogen_test_directory.path }}/mitogen_bench_{{ item }}"
         state: absent
-      loop: "{{ range(0, 200) | list }}"
+      loop: "{{ __loop_params }}"
+      loop_control:
+        label: "Removing {{ mitogen_test_directory.path }}/mitogen_bench_{{ item }}"
+    - name: Cleanup config
+      ansible.builtin.file:
+        path:   "{{ mitogen_test_directory.path }}/mitogen_bench_config"
+        state: absent
+    - name: Cleanup | Final
+      ansible.builtin.file:
+        path:  "{{ mitogen_test_directory.path }}"
+        state: absent

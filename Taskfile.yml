@@ -25,6 +25,10 @@ tasks:
   upgrade:
     cmds:
       - uv sync --upgrade
+  lint:
+    deps: [deps]
+    cmds:
+      - "uv run ansible-lint"
   galaxy-deps:
     deps: [deps]
     cmds:
