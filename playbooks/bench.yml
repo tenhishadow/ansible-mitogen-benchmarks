@@ -1,28 +1,27 @@
-- name: Mitogen benchmark
-  hosts: 127.0.0.1
+- name:         Mitogen benchmark
+  hosts:        bench_hosts
   gather_facts: false
-  become: true
-
+  become:       true
   tasks:
     - name: Cheap module call
-      ping:
+      ansible.builtin.ping:
 
     - name: Create many small files
-      copy:
-        dest: "/tmp/mitogen_bench_{{ item }}"
+      ansible.builtin.copy:
+        dest:    "/tmp/mitogen_bench_{{ item }}"
         content: "hello {{ item }}\n"
-        mode: "0644"
+        mode:    "0644"
       loop: "{{ range(0, 200) | list }}"
 
-    - name: Touch config-like edits
-      lineinfile:
-        path: "/tmp/mitogen_bench_config"
-        line: "k{{ item }}=v{{ item }}"
+    - name: Touch config like edits
+      ansible.builtin.lineinfile:
+        path:   "/tmp/mitogen_bench_config"
+        line:   "k{{ item }}=v{{ item }}"
         create: true
       loop: "{{ range(0, 200) | list }}"
 
     - name: Cleanup
-      file:
-        path: "/tmp/mitogen_bench_{{ item }}"
+      ansible.builtin.file:
+        path:  "/tmp/mitogen_bench_{{ item }}"
         state: absent
       loop: "{{ range(0, 200) | list }}"
