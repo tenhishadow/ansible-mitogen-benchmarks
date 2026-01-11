@@ -1,5 +1,5 @@
 [project]
-name = "benchmark"
+name = "ansible-mitogen-benchmarks"
 version = "0.0.0"
 dependencies = [
     "ansible-core",

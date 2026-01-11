@@ -4,6 +4,7 @@
   become:       true
   vars:
     __loop_params: "{{ range(0, 2000) | list }}"
+    __file_mode:   "u=rw,g=,o="
   tasks:
     - name: Cheap module call
       ansible.builtin.ping:
@@ -22,7 +23,7 @@
       ansible.builtin.copy:
         dest:    "{{ mitogen_test_directory.path }}/mitogen_bench_{{ item }}"
         content: "hello {{ item }}"
-        mode:    "u=r,g=,o="
+        mode:    "{{ __file_mode }}"
       loop: "{{ __loop_params }}"
       loop_control:
         label: "Creating {{ mitogen_test_directory.path }}/{{ item }}"
@@ -32,7 +33,7 @@
         path:   "{{ mitogen_test_directory.path }}/mitogen_bench_config"
         line:   "k{{ item }}=v{{ item }}"
         create: true
-        mode:    "u=r,g=,o="
+        mode:    "{{ __file_mode }}"
       loop: "{{ __loop_params }}"
       loop_control:
         label: "Insering k{{ item }}=v{{ item }} into {{ mitogen_test_directory.path }}/mitogen_bench_config"
