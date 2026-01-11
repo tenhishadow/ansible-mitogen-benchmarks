@@ -3,8 +3,7 @@
 version: "3"
 
 vars:
-  RUN_PLAYBOOK: "uv run ansible-playbook"
-  # RUN_PLAYBOOK: "ANSIBLE_STRATEGY=serverscom.mitogen.mitogen_linear uv run ansible-playbook"
+  RUN_PLAYBOOK: "uv run ansible-playbook playbooks/bench.yml"
 
 tasks:
   os-deps:
@@ -37,8 +36,8 @@ tasks:
     deps: [galaxy-deps]
     cmd: >-
       hyperfine --warmup 1 -r 5
-      '{{.RUN_PLAYBOOK}} playbooks/{{.TASK}}.yml'
-      'ANSIBLE_STRATEGY=serverscom.mitogen.mitogen_linear {{.RUN_PLAYBOOK}} playbooks/{{.TASK}}.yml'
+      '{{.RUN_PLAYBOOK}}'
+      'ANSIBLE_STRATEGY=serverscom.mitogen.mitogen_linear {{.RUN_PLAYBOOK}}'
   mitogen-only:
     deps: [galaxy-deps]
-    cmd: 'ANSIBLE_STRATEGY=serverscom.mitogen.mitogen_linear {{.RUN_PLAYBOOK}} playbooks/bench.yml'
+    cmd: 'ANSIBLE_STRATEGY=serverscom.mitogen.mitogen_linear {{.RUN_PLAYBOOK}}'
