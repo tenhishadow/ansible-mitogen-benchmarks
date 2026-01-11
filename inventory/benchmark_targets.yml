@@ -1,0 +1,5 @@
+benchmark_targets:
+  hosts:
+    localhost:
+      ansible_connection: local
+

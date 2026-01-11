@@ -1,5 +1,5 @@
 - name:         Mitogen benchmark
-  hosts:        bench_hosts
+  hosts:        benchmark_targets
   gather_facts: false
   become:       true
   tasks:
