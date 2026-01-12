@@ -37,7 +37,7 @@ tasks:
     cmd: >-
       hyperfine --warmup 1 -r 5
       '{{.RUN_PLAYBOOK}}'
-      'ANSIBLE_STRATEGY=serverscom.mitogen.mitogen_linear {{.RUN_PLAYBOOK}}'
+      'ANSIBLE_STRATEGY=serverscom.mitogen.mitogen_linear MITOGEN_POOL_SIZE=128 {{.RUN_PLAYBOOK}}'
   mitogen-only:
     deps: [galaxy-deps]
     cmd: 'ANSIBLE_STRATEGY=serverscom.mitogen.mitogen_linear MITOGEN_POOL_SIZE=128 {{.RUN_PLAYBOOK}}'
