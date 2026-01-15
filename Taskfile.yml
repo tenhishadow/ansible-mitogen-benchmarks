@@ -3,7 +3,7 @@
 version: "3"
 
 vars:
-  RUN_PLAYBOOK: "uv run ansible-playbook playbooks/bench.yml"
+  RUN_PLAYBOOK: "uv run ansible-playbook playbooks/bench.yml {{.CLI_ARGS}}"
   DEPS_OS_ARCHLINUX: "uv hyperfine"
 
 tasks:
