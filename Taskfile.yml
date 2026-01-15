@@ -7,15 +7,15 @@ vars:
   DEPS_OS_ARCHLINUX: "uv hyperfine"
 
 tasks:
-  os-deps:
+  deps-os:
     status:
       - sh -c 'type -P hyperfine'
       - sh -c 'type -P uv'
     cmd: >-
       pacman -Sy --noconfirm {{.DEPS_OS_ARCHLINUX}}
       || sudo pacman -Sy --noconfirm {{.DEPS_OS_ARCHLINUX}}
-  deps:
-    deps: [os-deps]
+  deps-python:
+    deps: [deps-os]
     sources:
       - pyproject.toml
       - uv.lock
@@ -28,19 +28,19 @@ tasks:
     cmds:
       - uv sync --upgrade
   lint:
-    deps: [deps]
+    deps: [deps-python]
     cmds:
       - "uv run ansible-lint"
-  galaxy-deps:
-    deps: [deps]
+  deps-galaxy:
+    deps: [deps-python]
     cmds:
       - "uv run ansible-galaxy install -r requirements.yml"
   bench:
-    deps: [galaxy-deps]
+    deps: [deps-galaxy]
     cmd: >-
       hyperfine --warmup 1 -r 5
       '{{.RUN_PLAYBOOK}}'
       'ANSIBLE_STRATEGY=serverscom.mitogen.mitogen_linear MITOGEN_POOL_SIZE=128 {{.RUN_PLAYBOOK}}'
   mitogen-only:
-    deps: [galaxy-deps]
+    deps: [deps-galaxy]
     cmd: 'ANSIBLE_STRATEGY=serverscom.mitogen.mitogen_linear MITOGEN_POOL_SIZE=128 {{.RUN_PLAYBOOK}}'
