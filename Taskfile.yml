@@ -12,8 +12,9 @@ tasks:
       - sh -c 'type -P hyperfine'
       - sh -c 'type -P uv'
     cmd: >-
-      pacman -Sy --noconfirm {{.DEPS_OS_ARCHLINUX}}
-      || sudo pacman -Sy --noconfirm {{.DEPS_OS_ARCHLINUX}}
+      $(grep -q Archxx /etc/*release*)
+      && sudo pacman -Sy --noconfirm {{.DEPS_OS_ARCHLINUX}}
+      || ( echo "please manage deps manually" && exit 1)
   deps-python:
     deps: [deps-os]
     sources:
