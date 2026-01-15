@@ -4,15 +4,18 @@ version: "3"
 
 vars:
   RUN_PLAYBOOK: "uv run ansible-playbook playbooks/bench.yml"
+  DEPS_OS_ARCHLINUX: "uv hyperfine"
 
 tasks:
   os-deps:
     status:
       - sh -c 'type -P hyperfine'
+      - sh -c 'type -P uv'
     cmd: >-
-      yay -Sy --noconfirm uv hyperfine
-  # python related
+      pacman -Sy --noconfirm {{.DEPS_OS_ARCHLINUX}}
+      || sudo pacman -Sy --noconfirm {{.DEPS_OS_ARCHLINUX}}
   deps:
+    deps: [os-deps]
     sources:
       - pyproject.toml
       - uv.lock
