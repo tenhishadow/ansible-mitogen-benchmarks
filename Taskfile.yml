@@ -3,8 +3,10 @@
 version: "3"
 
 vars:
-  RUN_PLAYBOOK: "uv run ansible-playbook playbooks/bench.yml {{.CLI_ARGS}}"
-  DEPS_OS_ARCHLINUX: "uv hyperfine"
+  RUN_PLAYBOOK:            "uv run ansible-playbook playbooks/bench.yml {{.CLI_ARGS}}"
+  DEPS_OS_ARCHLINUX:       "uv hyperfine"
+  MITOGEN_VARS:            "ANSIBLE_STRATEGY=serverscom.mitogen.mitogen_linear"
+  BENCHMARK_SSH_CTRL_PATH: "/tmp/ansible/mitogen/test/control/path"
 
 tasks:
   deps-os:
@@ -16,32 +18,37 @@ tasks:
       && sudo pacman -Sy --noconfirm {{.DEPS_OS_ARCHLINUX}}
       || ( echo "please manage deps manually" && exit 1)
   deps-python:
+    silent: true
     deps: [deps-os]
-    sources:
-      - pyproject.toml
-      - uv.lock
-    generates:
-      - .venv/pyvenv.cfg
     cmds:
       - uv sync --frozen --quiet
+  deps-galaxy:
     silent: true
-  upgrade:
+    deps: [deps-python]
+    cmds:
+      - "uv run ansible-galaxy install -r requirements.yml"
+  deps-ssh:
+    deps: [deps-galaxy]
+    cmds:
+      - "rm -rf {{.BENCHMARK_SSH_CTRL_PATH}} || true"
+      - "mkdir -p {{.BENCHMARK_SSH_CTRL_PATH}}"
+  deps-upgrade:
     cmds:
       - uv sync --upgrade
   lint:
     deps: [deps-python]
     cmds:
       - "uv run ansible-lint"
-  deps-galaxy:
-    deps: [deps-python]
+  get-strategy:
+    deps: [deps-ssh]
     cmds:
-      - "uv run ansible-galaxy install -r requirements.yml"
+      - "uv run ansible-doc -t strategy -l"
   bench:
-    deps: [deps-galaxy]
+    deps: [deps-ssh]
     cmd: >-
-      hyperfine --warmup 1 -r 5
+      hyperfine --warmup 1 --runs 3
       '{{.RUN_PLAYBOOK}}'
-      'ANSIBLE_STRATEGY=serverscom.mitogen.mitogen_linear MITOGEN_POOL_SIZE=128 {{.RUN_PLAYBOOK}}'
+      '{{.MITOGEN_VARS}} {{.RUN_PLAYBOOK}}'
   mitogen-only:
-    deps: [deps-galaxy]
-    cmd: 'ANSIBLE_STRATEGY=serverscom.mitogen.mitogen_linear MITOGEN_POOL_SIZE=128 {{.RUN_PLAYBOOK}}'
+    deps: [deps-ssh]
+    cmd: '{{.MITOGEN_VARS}} {{.RUN_PLAYBOOK}}'

@@ -1,9 +1,9 @@
 - name:         Mitogen benchmark
   hosts:        benchmark_targets
   gather_facts: false
-  become:       true
+  become:       false
   vars:
-    __loop_params: "{{ range(0, 2000) | list }}"
+    __loop_params: "{{ range(0, 200) | list }}"
     __file_mode:   "u=rw,g=,o="
   tasks:
     - name: Cheap module call
