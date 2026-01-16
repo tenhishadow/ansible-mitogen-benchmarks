@@ -1,5 +1,5 @@
 [project]
-requires-python = ">3.13"
+requires-python = ">=3.13"
 name            = "ansible-mitogen-benchmarks"
 version         = "0.0.0"
 dependencies    = [
