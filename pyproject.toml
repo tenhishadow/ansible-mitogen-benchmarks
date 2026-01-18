@@ -1,0 +1,12 @@
+[project]
+requires-python = ">=3.13"
+name            = "ansible-mitogen-benchmarks"
+version         = "0.0.0"
+dependencies    = [
+    "ansible-core",
+    "ansible-lint",
+    "mitogen"
+]
+
+[tool.uv]
+package         = false

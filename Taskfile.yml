@@ -1,0 +1,54 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: "3"
+
+vars:
+  RUN_PLAYBOOK:            "uv run ansible-playbook playbooks/bench.yml {{.CLI_ARGS}}"
+  DEPS_OS_ARCHLINUX:       "uv hyperfine"
+  MITOGEN_VARS:            "ANSIBLE_STRATEGY=serverscom.mitogen.mitogen_linear"
+  BENCHMARK_SSH_CTRL_PATH: "/tmp/ansible/mitogen/test/control/path"
+
+tasks:
+  deps-os:
+    status:
+      - sh -c 'type -P hyperfine'
+      - sh -c 'type -P uv'
+    cmd: >-
+      $(grep -q Archxx /etc/*release*)
+      && sudo pacman -Sy --noconfirm {{.DEPS_OS_ARCHLINUX}}
+      || ( echo "please manage deps manually" && exit 1)
+  deps-python:
+    silent: true
+    deps: [deps-os]
+    cmds:
+      - uv sync --frozen --quiet
+  deps-galaxy:
+    silent: true
+    deps: [deps-python]
+    cmds:
+      - "uv run ansible-galaxy install -r requirements.yml"
+  deps-ssh:
+    deps: [deps-galaxy]
+    cmds:
+      - "rm -rf {{.BENCHMARK_SSH_CTRL_PATH}} || true"
+      - "mkdir -p {{.BENCHMARK_SSH_CTRL_PATH}}"
+  deps-upgrade:
+    cmds:
+      - uv sync --upgrade
+  lint:
+    deps: [deps-python]
+    cmds:
+      - "uv run ansible-lint"
+  get-strategy:
+    deps: [deps-ssh]
+    cmds:
+      - "uv run ansible-doc -t strategy -l"
+  bench:
+    deps: [deps-ssh]
+    cmd: >-
+      hyperfine --warmup 1 --runs 3
+      '{{.RUN_PLAYBOOK}}'
+      '{{.MITOGEN_VARS}} {{.RUN_PLAYBOOK}}'
+  mitogen-only:
+    deps: [deps-ssh]
+    cmd: '{{.MITOGEN_VARS}} {{.RUN_PLAYBOOK}}'
