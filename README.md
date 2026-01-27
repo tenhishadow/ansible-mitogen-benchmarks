@@ -51,9 +51,7 @@ To benchmark remote hosts, change the inventory used by the playbook (or update 
 
 Full write-up with diagrams, methodology, and real numbers:
 
-- Blog: https://tenhishadow.github.io/posts/
-
-I will link the exact Mitogen article here once it is published.
+[Post](https://tenhishadow.github.io/posts/2026-01-27-ansible-warp-drive-mitogen/)
 
 ## Files to read first
 
